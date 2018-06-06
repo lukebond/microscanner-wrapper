@@ -27,3 +27,5 @@ $ MICROSCANNER_TOKEN=xxxxxxxxxxxxxxxx ./scan.sh aquasec/microscanner
 ```
 $ MICROSCANNER_TOKEN=xxxxxxxxxxxxxxxx ./scan.sh ubuntu:16.04
 ```
+
+The script will return `0` if Microscanner passes the image, or `1` if it fails it.
