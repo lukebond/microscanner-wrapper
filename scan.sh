@@ -3,12 +3,18 @@ set -euo pipefail
 
 MICROSCANNER_TOKEN="${MICROSCANNER_TOKEN:-}"
 DOCKER_IMAGE="${1:-}"
-TEMP_IMAGE_TAG=$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 32 | head -n 1 | tr '[:upper:]' '[:lower:]' || true)
+TEMP_IMAGE_TAG=$(tr -dc 'a-zA-Z0-9' </dev/urandom | fold -w 32 | head -n 1 | tr '[:upper:]' '[:lower:]' || true)
 
 main() {
   local MICROSCANNER_BINARY MICROSCANNER_SOURCE
-  [[ -z ${MICROSCANNER_TOKEN} ]] && { print_usage; exit 1; }
-  [[ -z ${DOCKER_IMAGE} ]] && { print_usage; exit 1; }
+  [[ -z ${MICROSCANNER_TOKEN} ]] && {
+    print_usage
+    exit 1
+  }
+  [[ -z ${DOCKER_IMAGE} ]] && {
+    print_usage
+    exit 1
+  }
 
   trap cleanup EXIT
 
@@ -25,29 +31,37 @@ main() {
     echo
   fi
 
-  cat <<EOL | docker build -t ${TEMP_IMAGE_TAG} -f - .
-FROM ${DOCKER_IMAGE}
+  {
+    echo "FROM ${DOCKER_IMAGE}"
 
-RUN if [ ! -d /etc/ssl/certs/ ]; then \
-  PACKAGE_MANAGER=\$(basename \$(command which apk apt yum false 2>/dev/null | head -n1)); \
-  if [ \${PACKAGE_MANAGER} = apk ]; then \
-    COMMAND='apk --update add'; \
-  elif [ \${PACKAGE_MANAGER} = apt ]; then \
-    COMMAND='apt update && apt install --no-install-recommends -y'; \
-  elif [ \${PACKAGE_MANAGER} = yum ]; then \
-    COMMAND='yum install -y'; \
+    cat <<'EOL'
+RUN if [ ! -d /etc/ssl/certs/ ] || { [ ! -f /etc/ssl/certs/ca-certificates.crt ] && [ ! -f /etc/ssl/certs/ca-bundle.crt ]; }; then \
+  PACKAGE_MANAGER=$(basename \
+    $({ command -v apk apt yum false 2>/dev/null || which apk apt yum false; } \
+    | head -n1)); \
+  if [ "${PACKAGE_MANAGER}" = "apk" ]; then \
+    apk --update add ca-certificates; \
+  elif [ "${PACKAGE_MANAGER}" = "apt" ]; then \
+    apt update \
+      && apt install --no-install-recommends -y ca-certificates \
+      && update-ca-certificates; \
+  elif [ "${PACKAGE_MANAGER}" = "yum" ]; then \
+    yum install -y ca-certificates; \
   else \
-    echo '/etc/ssl/certs/ not found and package manager not apk, apt, or yum. Aborting' >&2; \
+    echo 'ca-certificates not found and package manager not apk, apt, or yum. Aborting' >&2; \
     exit 1; \
   fi; \
-  eval \${COMMAND} ca-certificates; \
-fi
+fi;
+EOL
 
+    cat <<EOL
 ADD ${MICROSCANNER_SOURCE} .
 RUN chmod +x microscanner \
   && ./microscanner --version \
   && ./microscanner ${MICROSCANNER_TOKEN}
 EOL
+
+  } | docker build -t ${TEMP_IMAGE_TAG} -f - .
 }
 
 print_usage() {
@@ -55,7 +69,9 @@ print_usage() {
 }
 
 cleanup() {
-  docker image rm --force "${TEMP_IMAGE_TAG}" || true
+  if docker inspect --type=image "${TEMP_IMAGE_TAG}" &>/dev/null; then
+    docker image rm --force "${TEMP_IMAGE_TAG}" || true
+  fi
   rm -rf "${TEMP_DIR}" || true
 }
 
