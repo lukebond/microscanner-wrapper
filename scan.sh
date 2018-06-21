@@ -56,6 +56,7 @@ EOL
 
     cat <<EOL
 ADD ${MICROSCANNER_SOURCE} .
+USER root
 RUN chmod +x microscanner \
   && ./microscanner --version \
   && ./microscanner ${MICROSCANNER_TOKEN}
