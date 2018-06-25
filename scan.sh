@@ -22,7 +22,15 @@ main() {
   cd "${TEMP_DIR}"
 
   MICROSCANNER_SOURCE="https://get.aquasec.com/microscanner"
-  if MICROSCANNER_BINARY=$(command -v microscanner); then
+  if [[ "${USE_LOCAL:-0}" == 1 ]] \
+    && MICROSCANNER_BINARY=$(
+      {
+        unset -f microscanner
+        unalias microscanner
+      } &>/dev/null
+      { command -v microscanner 2>/dev/null || which microscanner; }
+    ); then
+
     printf "Using local "
     microscanner --version
 
@@ -55,10 +63,10 @@ fi;
 EOL
 
     cat <<EOL
-ADD ${MICROSCANNER_SOURCE} .
-RUN chmod +x microscanner \
-  && ./microscanner --version \
-  && ./microscanner ${MICROSCANNER_TOKEN}
+ADD ${MICROSCANNER_SOURCE} /tmp/microscanner
+RUN [ -x /tmp/microscanner ] || chmod +x /tmp/microscanner \
+  && /tmp/microscanner --version \
+  && /tmp/microscanner ${MICROSCANNER_TOKEN}
 EOL
 
   } | docker build -t ${TEMP_IMAGE_TAG} -f - .
