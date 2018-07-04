@@ -37,3 +37,18 @@ To avoid pulling the microscanner, if it's available in the local path:
 ```
 $ USE_LOCAL=1 MICROSCANNER_TOKEN=xxxxxxxxxxxxxxxx ./scan.sh ubuntu:16.04
 ```
+### Optional Parameters
+
+To run miscroscanner with optional parameters simply add MICROSCANNER_OPTIONS as an environmental or as one argument:
+
+```
+$ MICROSCANNER_TOKEN=xxxxxxxxxxxxxxxx MICROSCANNER_OPTIONS="--html" ./scan.sh DOCKER_IMAGE
+```
+
+### Output HTML 
+
+To output the results in HTML simply call this script with the same familar parameters:
+
+```
+$ MICROSCANNER_TOKEN=xxxxxxxxxxxxxxxx ./grabhtml.sh DOCKER_IMAGE
+```

@@ -2,6 +2,7 @@
 set -euo pipefail
 
 MICROSCANNER_TOKEN="${MICROSCANNER_TOKEN:-}"
+MICROSCANNER_OPTIONS="${MICROSCANNER_OPTIONS:-}"
 DOCKER_IMAGE="${1:-}"
 TEMP_IMAGE_TAG=$(LC_CTYPE=C tr -dc 'a-zA-Z0-9' </dev/urandom | fold -w 32 | head -n 1 | tr '[:upper:]' '[:lower:]' || true)
 
@@ -67,7 +68,7 @@ ADD ${MICROSCANNER_SOURCE} /tmp/microscanner
 USER root
 RUN [ -x /tmp/microscanner ] || chmod +x /tmp/microscanner \
   && /tmp/microscanner --version \
-  && /tmp/microscanner ${MICROSCANNER_TOKEN}
+  && /tmp/microscanner ${MICROSCANNER_OPTIONS} ${MICROSCANNER_TOKEN}
 EOL
 
   } | docker build -t ${TEMP_IMAGE_TAG} -f - .
