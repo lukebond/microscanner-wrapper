@@ -71,7 +71,7 @@ RUN [ -x /tmp/microscanner ] || chmod +x /tmp/microscanner \
   && /tmp/microscanner ${MICROSCANNER_OPTIONS} ${MICROSCANNER_TOKEN}
 EOL
 
-  } | docker build -t ${TEMP_IMAGE_TAG} -f - .
+  } | docker build --force-rm -t ${TEMP_IMAGE_TAG} -f - .
 }
 
 print_usage() {
