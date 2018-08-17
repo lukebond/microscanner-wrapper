@@ -67,6 +67,7 @@ EOL
 ADD ${MICROSCANNER_SOURCE} /tmp/microscanner
 USER root
 RUN [ -x /tmp/microscanner ] || chmod +x /tmp/microscanner \
+  && sync \
   && /tmp/microscanner --version \
   && /tmp/microscanner ${MICROSCANNER_OPTIONS} ${MICROSCANNER_TOKEN}
 EOL
