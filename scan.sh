@@ -29,7 +29,7 @@ main() {
         unset -f microscanner
         unalias microscanner
       } &>/dev/null
-      { command -v microscanner 2>/dev/null || which microscanner; }
+      command -v microscanner 2>/dev/null
     ); then
 
     printf "Using local "
@@ -72,7 +72,7 @@ RUN [ -x /tmp/microscanner ] || chmod +x /tmp/microscanner \
   && /tmp/microscanner ${MICROSCANNER_OPTIONS} ${MICROSCANNER_TOKEN}
 EOL
 
-  } | docker build --force-rm -t ${TEMP_IMAGE_TAG} -f - .
+  } | docker build --force-rm -t "${TEMP_IMAGE_TAG}" -f - .
 }
 
 print_usage() {
