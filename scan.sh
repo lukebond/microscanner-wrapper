@@ -41,7 +41,10 @@ main() {
   fi
 
   {
-    echo "FROM ${DOCKER_IMAGE}"
+    cat <<EOL
+FROM ${DOCKER_IMAGE}
+USER root
+EOL
 
     cat <<'EOL'
 RUN if [ ! -d /etc/ssl/certs/ ] || { [ ! -f /etc/ssl/certs/ca-certificates.crt ] && [ ! -f /etc/ssl/certs/ca-bundle.crt ]; }; then \
@@ -65,7 +68,6 @@ EOL
 
     cat <<EOL
 ADD ${MICROSCANNER_SOURCE} /tmp/microscanner
-USER root
 RUN [ -x /tmp/microscanner ] || chmod +x /tmp/microscanner \
   && sync \
   && /tmp/microscanner --version \
